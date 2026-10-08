@@ -1,0 +1,21 @@
+spec_version: 1
+identifier: InflataDepot
+name: InflataDepot
+abstract: Inflatable pancake-to-cylinder orbital fuel depots with selectable propellant
+$kref: '#/ckan/github/SockedRooster/KSP-Inflatable-Fuel-Depots/asset_match/^InflataDepot-v.*\.zip$'
+author: SockedRooster
+license: MIT
+release_status: testing
+ksp_version: 1.12.5
+resources:
+  homepage: https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots
+  repository: https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots
+  bugtracker: https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/issues
+depends:
+  - name: B9PartSwitch
+  - name: ModuleManager
+install:
+  - find: InflataDepot
+    install_to: GameData
+tags:
+  - parts
