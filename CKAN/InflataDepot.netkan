@@ -1,11 +1,12 @@
 spec_version: 1
 identifier: InflataDepot
-name: InflataDepot
-abstract: Inflatable pancake-to-cylinder orbital fuel depots with selectable propellant
-$kref: '#/ckan/github/SockedRooster/KSP-Inflatable-Fuel-Depots/asset_match/^InflataDepot-v.*\.zip$'
+name: RoosterWorks InflataDepot
+abstract: Compact deployable cylindrical orbital fuel tanks with docking, guarded fuel storage and selectable LF/OX or LF-only capacity
+$kref: '#/ckan/github/SockedRooster/KSP-Inflatable-Fuel-Depots/asset_match/^InflataDepot-v[0-9]+\.[0-9]+\.[0-9]+\.zip$'
 author: SockedRooster
 license: MIT
-release_status: testing
+release_status: stable
+# First release targeted KSP 1.12.5. Verify wider compatibility before changing.
 ksp_version: 1.12.5
 resources:
   homepage: https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots
@@ -14,6 +15,8 @@ resources:
 depends:
   - name: B9PartSwitch
   - name: ModuleManager
+suggests:
+  - name: VABOrganizer
 install:
   - find: InflataDepot
     install_to: GameData

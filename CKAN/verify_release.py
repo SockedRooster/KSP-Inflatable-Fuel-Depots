@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
-"""Review-only packaging checks for InflataDepot; cannot replace in-game/NetKAN testing."""
+"""Check that an InflataDepot release ZIP has the expected installable structure."""
+from zipfile import ZipFile
 from pathlib import Path
-import hashlib, zipfile, sys, re
-from collections import Counter
+import sys
 
-ROOT=Path(__file__).resolve().parents[1]
-G=ROOT/'GameData'/'InflataDepot'
-assert G.exists()
-cfgs=list((G/'Parts').glob('*.cfg'))
-assert len(cfgs)==3
-ids=[]
-for cfg in cfgs:
-    c=cfg.read_text()
-    ids.append(re.search(r'(?m)^\s*name = (ID_FoldTank_\d+)',c).group(1))
-    assert c.count('node_stack_')==1 and 'node_stack_bottom' in c
-    assert c.count('name = ModuleDockingNode')==1
-    assert c.count('name = ModuleB9PartSwitch')==1
-    assert 'tankType = InflataDepot_LFOX' in c and 'tankType = InflataDepot_LF' in c
-    assert 'isOneShot = true' in c and 'animationName = inflate' in c
-assert sorted(ids)==['ID_FoldTank_125','ID_FoldTank_250','ID_FoldTank_375']
-assert len(list((G/'Models').glob('*.mu')))==3
-assert len(list((G/'Models').glob('*.png')))==3
-print('PASS Three tank sizes, one bottom node per tank, deployment and two B9 fuel options')
-print('PASS Unique part IDs and three native models')
-print('NOT CHECKED: KSP in-game behavior, compatibility and true CKAN indexing')
+p = Path(sys.argv[1]) if len(sys.argv)>1 else Path('InflataDepot-v1.0.0.zip')
+with ZipFile(p) as z:
+    assert z.testzip() is None, 'Corrupt ZIP member'
+    names=set(z.namelist())
+    expected={
+       'LICENSE','README.md','CHANGELOG.md',
+       'GameData/InflataDepot/Plugins/InflataDepotPlugin.dll',
+       'GameData/InflataDepot/InflataDepotFuelLock.cfg',
+       'GameData/InflataDepot/InflataDepotTankTypes.cfg',
+       'GameData/InflataDepot/Compatibility/VABOrganizer.cfg',
+    }
+    for size in ('125','250','375'):
+        expected.add(f'GameData/InflataDepot/Models/ID_FoldTank_{size}.mu')
+        expected.add(f'GameData/InflataDepot/Parts/ID_FoldTank_{size}.cfg')
+    missing=expected-names
+    assert not missing, f'Missing files: {sorted(missing)}'
+    assert all(n.startswith('GameData/InflataDepot/') or n in {'LICENSE','README.md','CHANGELOG.md'} for n in names)
+    for size in ('125','250','375'):
+        cfg=z.read(f'GameData/InflataDepot/Parts/ID_FoldTank_{size}.cfg').decode('utf-8')
+        for phrase in ('category = FuelTank','TechRequired = advFuelSystems','organizerSubcategory = lfo','ModuleB9PartSwitch','ModuleDockingNode'):
+            assert phrase in cfg, f'{size}: missing {phrase}'
+    for token in ('ModuleInflataFuelLock', 'nominalVolume'):
+        assert token.encode() in z.read('GameData/InflataDepot/InflataDepotFuelLock.cfg')
+print(f'PASS: {p.name}, {len(names)} release files, 3 configured tanks, plugin included')

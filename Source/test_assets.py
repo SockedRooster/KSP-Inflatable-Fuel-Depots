@@ -16,7 +16,7 @@ EXPECT={
 }
 
 class Reader:
-    def __init__(self,path):self.f=path.open('rb');self.end=self.f.seek(0,2);self.f.seek(0);self.names=[];self.meshcount=0;self.tricount=0;self.scale={};self.animation=[];self.colliders=0;self.collider_names=[];self.texnames=[];self.parent_names=[];self.dyn_colliders=[]
+    def __init__(self,path):self.f=path.open('rb');self.end=self.f.seek(0,2);self.f.seek(0);self.names=[];self.meshcount=0;self.tricount=0;self.scale={};self.animation=[];self.colliders=0;self.collider_names=[];self.texnames=[];self.parent_names=[];self.dyn_colliders=[];self.positions={};self.mesh_bounds={}
     def read(self,fmt):
         sz=struct.calcsize('<'+fmt);dat=self.f.read(sz)
         assert len(dat)==sz,'Unexpected end of MU'
@@ -32,13 +32,22 @@ class Reader:
             if x<128:break
         assert length<100000
         return self.f.read(length).decode()
-    def mesh(self):
+    def mesh(self, objname=None):
         assert self.i()==13;nv=self.i();submeshes=self.i()
         assert nv>0 and nv<65535 and submeshes==1
         assert self.i()==14
-        for _ in range(nv):self.xyz()
+        verts=[self.xyz() for _ in range(nv)]
+        if objname=='TankCollisionHull':
+            self.mesh_bounds[objname]=(tuple(min(v[i] for v in verts) for i in range(3)),tuple(max(v[i] for v in verts) for i in range(3)))
         assert self.i()==15
-        for _ in range(nv):self.read('ff')
+        uv=[self.read('ff') for _ in range(nv)]
+        if objname is not None and objname.startswith('RoosterWorksLabel'):
+            # In KSP, PIL PNG v-coordinate must decrease as model Y increases.
+            # The label's gold stripe stays at camera-left (U unchanged).
+            assert nv==50, (objname,nv)
+            assert math.isclose(uv[0][0],1.,abs_tol=1e-6) and math.isclose(uv[0][1],1.,abs_tol=1e-6), (objname,'lower left',uv[0])
+            assert math.isclose(uv[25][0],1.,abs_tol=1e-6) and math.isclose(uv[25][1],0.,abs_tol=1e-6), (objname,'upper left',uv[25])
+            assert math.isclose(uv[24][0],0.,abs_tol=1e-6) and math.isclose(uv[49][1],0.,abs_tol=1e-6)
         assert self.i()==17
         for _ in range(nv):self.xyz()
         assert self.i()==19;inds=self.i();assert inds%3==0
@@ -47,7 +56,7 @@ class Reader:
         self.meshcount+=1;self.tricount+=inds//3
     def anim(self):
         assert self.i()==1;assert self.string()=='inflate';self.xyz();self.xyz();self.i()
-        assert self.i()==3
+        assert self.i()==7, 'Seven animation tracks expected (4 membrane transforms and 3 delayed collider scales)'
         curves={}
         for prop in ('x','y','z'):
             assert self.string()=='InflatableAssembly'
@@ -58,11 +67,31 @@ class Reader:
             assert keys[0][0]==0 and keys[1][0]==20
             assert abs(keys[1][1]-1)<1e-5
             curves[prop]=keys[0][1]
+        # A fourth animation curve counter-translates the membrane so its
+        # bottom center never lifts off the fixed gray docking collar.
+        assert self.string()=='InflatableAssembly'
+        assert self.string()=='m_LocalPosition.y'
+        assert self.i()==0;self.i();self.i()
+        assert self.i()==2
+        keys=[self.read('ffffi') for _ in range(2)]
+        assert keys[0][0]==0 and keys[1][0]==20
+        curves['posy0']=keys[0][1]
+        curves['posy1']=keys[1][1]
+        for prop in ('x','y','z'):
+            assert self.string()=='TankCollisionHull'
+            assert self.string()=='m_LocalScale.'+prop
+            assert self.i()==0;self.i();self.i()
+            assert self.i()==3
+            keys=[self.read('ffffi') for _ in range(3)]
+            assert [round(k[0],2) for k in keys]==[0.,19.95,20.]
+            assert abs(keys[0][1]-.001)<1e-6 and abs(keys[1][1]-.001)<1e-6
+            assert abs(keys[2][1]-1.)<1e-6
+            curves['hull_'+prop]=keys
         assert self.string()=='inflate';assert self.byte()==0
         self.animation.append(curves)
     def object(self, parent=None):
         name=self.string();self.names.append(name)
-        self.xyz();self.read('ffff');self.scale[name]=self.xyz()
+        self.positions[name]=self.xyz();self.read('ffff');self.scale[name]=self.xyz()
         assert self.i()==24;self.string();self.i()
         while self.f.tell()<self.end:
             tag=self.i()
@@ -75,21 +104,21 @@ class Reader:
                 self.colliders+=1;self.collider_names.append((name,parent,'convex mesh'))
                 is_trigger=self.byte();convex=self.byte()
                 assert is_trigger==0 and convex==1, 'Collider must be non-trigger and convex'
-                self.mesh()
-            elif tag==7:self.mesh()
+                self.mesh(name)
+            elif tag==7:self.mesh(name)
             elif tag==8:
-                self.byte();self.byte();assert self.i()==1;idx=self.i();assert 0<=idx<3
+                self.byte();self.byte();assert self.i()==1;idx=self.i();assert 0<=idx<4
             elif tag==2:self.anim()
             elif tag==10:
-                assert self.i()==3
-                for _ in range(3):
+                assert self.i()==4
+                for _ in range(4):
                     self.string();assert self.string()=='KSP/Diffuse';assert self.i()==2
                     assert self.string()=='_Color';assert self.i()==0;self.read('ffff')
-                    assert self.string()=='_MainTex';assert self.i()==4;assert 0<=self.i()<3;self.read('ff');self.read('ff')
+                    assert self.string()=='_MainTex';assert self.i()==4;assert 0<=self.i()<4;self.read('ff');self.read('ff')
             elif tag==12:
-                assert self.i()==3
+                assert self.i()==4
                 self.texnames=[]
-                for expected in ('fabric','metal','straps'):
+                for expected in ('fabric','metal','straps','branding'):
                     name=self.string();assert name==expected;assert self.i()==0;self.texnames.append(name)
             else:raise AssertionError(f'Unknown MU tag {tag} at {self.f.tell()-4}')
     def process(self):
@@ -102,7 +131,9 @@ class Reader:
         assert 'TopHub' not in self.names and 'Spine' not in self.names
         assert len(self.animation)==1 and self.colliders==2
         assert ('DockCollider','InflataDepot','box') in self.collider_names
-        assert ('InflatableCollider','InflatableAssembly','convex mesh') in self.collider_names
+        assert ('TankCollisionHull','InflataDepot','convex mesh') in self.collider_names
+        assert all(name!='InflatableCollider' for name,parent,kind in self.collider_names)
+        assert math.isclose(self.scale['TankCollisionHull'][0],.001,abs_tol=1e-6)
         return self
 
 assert len(list(PARTS.glob('*.cfg')))==3
@@ -125,13 +156,40 @@ for key,p in EXPECT.items():
     assert 'tankType = InflataDepot_LFOX' in config and 'tankType = InflataDepot_LF' in config
     assert f'baseVolume = {p["capacity"]}' in config
     assert 'RESOURCE\n' not in config
+    # VAB Organizer must find this data ON THE PART, without relying on a
+    # separately scheduled ModuleManager patch. Otherwise it uses Miscellaneous.
+    assert 'category = FuelTank' in config
+    assert 'TechRequired = advFuelSystems' in config
+    assert config.count('VABORGANIZER') == 1
+    assert 'organizerSubcategory = lfo' in config
     assert config.count('{')==config.count('}')
     mu=Reader(MODELS/(basename+'.mu')).process()
     radial=mu.animation[0]['x'];height=mu.animation[0]['y']
     assert math.isclose(radial,p['diameter']/p['final'],rel_tol=1e-5)
     assert math.isclose(height,.09,rel_tol=1e-5)
+    anim=mu.animation[0]
+    bottom_local=(0.115 + 4.70*0.018)*p['scale']
+    expected_anchor=0.075*p['scale']
+    expected_stowed_y=expected_anchor-height*bottom_local
+    expected_deployed_y=expected_anchor-bottom_local
+    assert math.isclose(anim['posy0'],expected_stowed_y,abs_tol=1e-5)
+    assert math.isclose(anim['posy1'],expected_deployed_y,abs_tol=1e-5)
+    assert math.isclose(mu.positions['InflatableAssembly'][1], expected_stowed_y, abs_tol=1e-5)
+    for t in range(21):
+        fraction=t/20
+        sc=height+(1-height)*fraction
+        pos=anim['posy0']+(anim['posy1']-anim['posy0'])*fraction
+        assert abs(pos+sc*bottom_local-expected_anchor)<1e-5, (basename,t)
+    assert sum(n.startswith('RoosterWorksLabel') for n in mu.names)==4
     assert mu.names.count('DockShell')==1
-    print(f'PASS {basename}: {mu.meshcount} meshes, {mu.tricount} triangles; 2 solid colliders (animated membrane + static base); packed scale x/z={radial:.4f}, y={height:.2f}; {p["node"]} docking; 2 tank variants')
+    hull_low,hull_high=mu.mesh_bounds['TankCollisionHull']
+    assert hull_low[1] > 0.22*p['scale'], (basename,'collider overlaps base',hull_low)
+    assert hull_high[1] < (0.075+4.70*(.982-.018))*p['scale'], (basename,'collider protrudes above visual cap')
+    assert max(abs(hull_low[0]),abs(hull_high[0])) < 2.45*p['scale'], (basename,'collider extends past skin')
+    # Independent double-sided seal triangles live in the FabricCylinder mesh.
+    # The older mesh had roughly 17.5K triangles; the seal adds 384 faces.
+    assert mu.tricount >= 18112
+    print(f'PASS {basename}: {mu.meshcount} meshes, {mu.tricount} triangles; 1 fixed base collider + 1 late-activating convex hull; pinned dock center={expected_anchor:.4f}m; packed scale x/z={radial:.4f}, y={height:.2f}; {p["node"]} docking; 2 tank variants')
 
 fuel=(G/'InflataDepotTankTypes.cfg').read_text()
 assert fuel.count('B9_TANK_TYPE')==2
@@ -139,6 +197,9 @@ assert fuel.count('percentFilled = 0')==2
 assert 'name = InflataDepot_LFOX' in fuel and 'name = InflataDepot_LF' in fuel
 assert 'unitsPerVolume = 0.45' in fuel and 'unitsPerVolume = 0.55' in fuel
 assert 'unitsPerVolume = 1\n' in fuel
+organizer=(G/'Compatibility'/'VABOrganizer.cfg').read_text()
+assert 'organizerSubcategory = lfo' in organizer
+assert '%category = FuelTank' in organizer
 for f in MODELS.glob('*.png'):
     with Image.open(f) as img:img.verify()
 if ARCHIVE.exists():
@@ -147,4 +208,4 @@ if ARCHIVE.exists():
         names=z.namelist()
         assert sum(x.startswith('GameData/InflataDepot/Parts/') for x in names)==3
 print('PASS fuel types + PNGs; optional regenerated archive integrity check')
-print('NOTE: Static validation only. New COLLISION behavior in-game has NOT been tested.')
+print('NOTE: 0.9.9 COLLISION TEST: hull switches on at full deployment; in-game KSP physics testing REQUIRED.')

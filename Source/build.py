@@ -16,32 +16,53 @@ PARTS=GAMEDATA/'Parts'
 MODEL.mkdir(parents=True,exist_ok=True)
 PARTS.mkdir(parents=True,exist_ok=True)
 
-# --- Procedural hand-painted UV textures ---
+# --- Procedural UV fabric: fine weave + restrained stitched panel seams ---
+# Color only, all pixels opaque. The cap geometry is watertight, including its center.
 rng=np.random.default_rng(73518)
-SIZE=1024
+SIZE=2048
 y,x=np.mgrid[0:SIZE,0:SIZE]
-# Folded white ceramic-fabric look, with longitudinal seams, ripples and woven grain.
-weave=1.7*np.cos(2*np.pi*x/5.7)*np.cos(2*np.pi*y/5.7)
-wrinkle=3.2*np.sin(x*0.11+y*0.013)+2.2*np.sin(y*0.32+x*.037)
-base=216 + weave+wrinkle + rng.normal(0,1.2,(SIZE,SIZE))
-base-=7*(np.sin(2*np.pi*x/(SIZE/12))**24)
-arr=np.stack([base+3,base+7,base+11],axis=-1)
+# Seamless textile threading and broad uneven illumination; keep the marks small
+# enough not to create a checkerboard when wrapped around a 7m tank.
+thread=1.75*np.cos(2*np.pi*x/7.5)*np.cos(2*np.pi*y/8.5)
+filament=1.05*np.sin(2*np.pi*x/3.1)+0.9*np.sin(2*np.pi*y/3.5)
+wrinkle=2.3*np.sin(2*np.pi*y/157 + 0.5*np.sin(2*np.pi*x/613)) + 1.1*np.sin(2*np.pi*x/229)
+base=219 + thread + filament+wrinkle + rng.normal(0,1.05,(SIZE,SIZE))
+# Twelve stitched vertical gussets: softly inset woven panel edges, not dark grids.
+seam_interval=SIZE/12
+seam_dist=np.abs(((x+seam_interval/2)%seam_interval)-seam_interval/2)
+seam_shadow=6.0*np.exp(-.5*(seam_dist/4)**2)
+base-=seam_shadow
+arr=np.stack([base+2,base+6,base+11],axis=-1)
 arr=np.uint8(np.clip(arr,0,255))
 im=Image.fromarray(arr,'RGB')
 d=ImageDraw.Draw(im)
-for xx in range(0,SIZE+1,85):
-    d.line([(xx,0),(xx,SIZE)],fill=(100,122,134),width=3)
-    d.line([(xx+3,0),(xx+3,SIZE)],fill=(245,245,240),width=2)
-    for yy in range(14,SIZE,26):
-        d.line([(xx-5,yy),(xx+5,yy+2)], fill=(126,149,158),width=1)
-for yy in [80,950]:
-    d.rectangle([0,yy,SIZE,yy+12],fill=(104,127,138))
-    d.line([(0,yy+14),(SIZE,yy+14)],fill=(247,238,203),width=3)
-# Brand label at UV middle, useful for identification in VAB.
-d.rounded_rectangle([376,410,650,515],radius=17,fill=(38,60,74),outline=(225,190,89),width=6)
-d.text((407,435),'INFLATA',fill=(244,246,248))
-d.text((452,469),'DEPOT',fill=(240,199,88))
-im.save(MODEL/'fabric.png',compress_level=6)
+for k in range(12):
+    xx=round(k*SIZE/12)
+    d.line([(xx+5,0),(xx+5,SIZE)],fill=(237,241,244),width=2)
+    # Fine intermittent thread stitches, intentionally very subtle
+    for yy in range(11,SIZE,25):
+        d.line([(xx-3,yy),(xx-3,yy+9)],fill=(140,154,160),width=1)
+# faint reinforced borders at the rolled rim of the top and bottom shoulders
+for yy in (58,SIZE-58):
+    d.line([(0,yy),(SIZE,yy)],fill=(180,190,196),width=3)
+    d.line([(0,yy+4),(SIZE,yy+4)],fill=(245,247,247),width=2)
+im.save(MODEL/'fabric.png',optimize=True)
+
+# Separate readable nameplate; placed on dedicated curved geometry (not stretched
+# into the repeating cylindrical fabric UV texture).
+from PIL import ImageFont
+label=Image.new('RGB',(1400,350),(39,55,67))
+ld=ImageDraw.Draw(label)
+ld.rounded_rectangle([9,9,1390,341],radius=25,outline=(201,163,91),width=9)
+ld.rectangle([43,54,56,294],fill=(231,163,49))
+font_bold='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+font_regular='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+# Fonts are used during generation only. Font files are not part of the release.
+f1=ImageFont.truetype(font_bold,119)
+f2=ImageFont.truetype(font_regular,62)
+ld.text((94,60),'RoosterWorks',font=f1,fill=(241,244,244))
+ld.text((99,216),'INFLATABLE DEPOT',font=f2,fill=(232,185,98))
+label.save(MODEL/'branding.png',optimize=True)
 
 size=512
 y,x=np.mgrid[0:size,0:size]
@@ -131,6 +152,48 @@ def inflatable_drum(radius, height, ybase, segments=96):
             row.append(m.add((rad*c,yy,rad*s),tuple(v/mag for v in norm),(j/segments,hy)))
         rings.append(row)
     m.stitch(rings,segments)
+    # Historic models left a 2%-radius hole at both poles, exposing the tank
+    # interior when viewed along its cylinder axis. Add real opaque end faces.
+    bot=m.add((0,ybase+height*profile[0][1],0),(0,-1,0),(.5,profile[0][1]))
+    top=m.add((0,ybase+height*profile[-1][1],0),(0,1,0),(.5,profile[-1][1]))
+    for j in range(segments):
+        m.tri(bot,rings[0][j],rings[0][j+1])  # bottom-end face
+        m.tri(top,rings[-1][j+1],rings[-1][j]) # top-end face
+
+    # Physically fill the tiny central aperture with an independent, two-sided
+    # round textile patch at each pole.  Older single-sided triangle fans are
+    # not reliable on all camera orientations in Unity/KSP (back-face culling).
+    # Position the plug just outside the membrane to avoid z-fighting.
+    # The patch is a pure render surface; it does not change collider physics.
+    plug_radius=radius*.085
+    for cap_y,normal_y in ((ybase+height*.0166,-1),(ybase+height*.9834,1)):
+        mid=m.add((0,cap_y,0),(0,normal_y,0),(.5,.5))
+        rim=[]
+        for j in range(segments):
+            th=2*math.pi*j/segments
+            c,si=math.cos(th),math.sin(th)
+            rim.append(m.add((plug_radius*c,cap_y,plug_radius*si),(0,normal_y,0),(.5+.5*c,.5+.5*si)))
+        for j in range(segments):
+            nxt=(j+1)%segments
+            m.tri(mid,rim[j],rim[nxt])
+            m.tri(mid,rim[nxt],rim[j])
+    return m
+
+
+def curved_brand_plate(radius, y0, y1, center_angle, width_rad=0.66, segments=24):
+    """Subtly floating nameplate following the drum cylinder, normal outward."""
+    m=Mesh();rows=[]
+    for y,v in ((y0,0.),(y1,1.)):
+        row=[]
+        for j in range(segments+1):
+            u=j/segments
+            angle=center_angle + (u-.5)*width_rad
+            co,si=math.cos(angle),math.sin(angle)
+            rr=radius*1.008
+            # Keep U orientation (gold sidebar on left), flip V so PNG reads upright in KSP.
+            row.append(m.add((rr*co,y,rr*si),(co,0,si),(1-u,1-v)))
+        rows.append(row)
+    m.stitch(rows,segments)
     return m
 
 
@@ -208,15 +271,43 @@ def transform(w,name,pos=(0,0,0),sc=(1,1,1),mesh=None,mat=None,collider=None,col
         w.i(22)
         w.i(8);w.b(1);w.b(1);w.i(1,mat)
 
-def animate(w,packed_radial,packed_height,bounds):
+def animate(w,packed_radial,packed_height,bounds,base_anchor_y,bladder_lower_y):
+    """Deploy around a FIXED connection point on the metallic docking collar.
+
+    Earlier versions scaled InflatableAssembly in Y around local (0,0,0).
+    The bottom skin vertex sits above that origin, so scaling the shell also
+    lifted its attachment face away from the static DockShell.  This animation
+    counter-translates the assembly as it scales so the bottom endcap center
+    remains at base_anchor_y throughout the entire 20-second deployment.
+
+    Center Y(world) = localPositionY + localScaleY * bladder_lower_y
+                    = base_anchor_y for all deployment fractions.
+    """
     w.i(2,1);w.string('inflate')
     w.xyz((0,0,0));w.xyz(bounds);w.i(1)
-    w.i(3)
-    for prop,a in [('m_LocalScale.x',packed_radial),('m_LocalScale.y',packed_height),('m_LocalScale.z',packed_radial)]:
+    tracks=[
+      ('m_LocalScale.x', packed_radial, 1.0),
+      ('m_LocalScale.y', packed_height, 1.0),
+      ('m_LocalScale.z', packed_radial, 1.0),
+      ('m_LocalPosition.y', base_anchor_y - packed_height * bladder_lower_y,
+                            base_anchor_y - bladder_lower_y),
+    ]
+    # Dedicated collision hull stays almost point-sized until the visible tank
+    # has finished deploying. This avoids a continuously growing solid collider
+    # pushing on docked structures during the 20-second inflation.
+    # The clip is 20 s long, so activation occurs only at the last frame.
+    w.i(len(tracks) + 3)
+    for prop,start,end in tracks:
         w.string('InflatableAssembly');w.string(prop);w.i(0,1,1,2)
-        slope=(1-a)/20
-        for t,val in [(0,a),(20,1.)]:
+        slope=(end-start)/20.0
+        for t,val in [(0,start),(20,end)]:
             w.f(t,val,slope,slope);w.i(0)
+    for axis in 'xyz':
+        w.string('TankCollisionHull');w.string('m_LocalScale.'+axis);w.i(0,1,1,3)
+        for t,val in ((0.0, 0.001), (19.95, 0.001), (20.0, 1.0)):
+            # Flat Hermite tangents: almost no collider throughout deployment,
+            # then it becomes full size in the last 0.05 seconds.
+            w.f(t,val,0.0,0.0);w.i(0)
     w.string('inflate');w.b(0)
 
 def child(w,name,mesh,material):
@@ -231,7 +322,12 @@ def build_mu(p):
     out=MODEL/(p['id']+'.mu');w=Binary(out)
     w.i(76543,5);w.string(p['id'])
     transform(w,'InflataDepot')
-    animate(w,radial,packed_height,(radius*2,height+base,radius*2))
+    # Anchor the membrane's lowest pole to the fixed docking collar at every
+    # point in the inflation sequence, not just at the beginning and end.
+    bladder_lower_y=base+height*0.018
+    base_anchor_y=0.075*s
+    animate(w,radial,packed_height,(radius*2,height+base,radius*2),
+            base_anchor_y,bladder_lower_y)
     # A single permanent underside dock base. No top hub, no top stack node.
     child(w,'DockShell',cyl(dock*1.08,-.31*s,.12*s),1)
     child(w,'DockLowerLip',torus(dock*1.03,.043*s,-.32*s),1)
@@ -243,31 +339,40 @@ def build_mu(p):
     transform(w,'DockCollider',collider=(dock*2.2,.44*s,dock*2.2))
     w.i(1)
     w.i(0)
-    transform(w,'InflatableAssembly',sc=(radial,packed_height,radial))
+    transform(w,'InflatableAssembly',pos=(0,base_anchor_y-packed_height*bladder_lower_y,0),sc=(radial,packed_height,radial))
     child(w,'FabricCylinder',inflatable_drum(radius,height,base),0)
-    # Collider is INSIDE the inflatable subtree (not the rigid docking base).
-    # It grows with the animation and has a flat-ish cylindrical footprint.
-    w.i(0)
-    transform(w,'InflatableCollider',collider_mesh=inflatable_collision_mesh(radius,height,base))
-    w.i(1)
     for idx,fract in enumerate([.15,.34,.52,.70,.85]):
         child(w,f'RestraintBand{idx:02d}',torus(radius+.006*s,.025*s,base+height*fract),2)
+    # Four outward-facing nameplates so branding is visible at any camera bearing.
+    for idx in range(4):
+        child(w,f'RoosterWorksLabel{idx:02d}',curved_brand_plate(radius,base+height*.574,base+height*.649,idx*math.pi/2),3)
+    w.i(1)  # close InflatableAssembly; collider belongs to fixed part root
+    # Late-deployment collision: convex body hull is a SIBLING of the animated
+    # fabric, not a child of the continuously-scaled InflatableAssembly.
+    # The hull stays at 0.1% size until 19.95 sec, then becomes full sized at
+    # 20.00 sec, matching the fully deployed cylinder. Its end is kept well
+    # above the fixed dock-base collider to avoid self-overlap.
+    hull=inflatable_collision_mesh(radius*0.96,height,base,segments=24)
+    hull_offset=base_anchor_y-bladder_lower_y
+    hull.verts=[(x,y+hull_offset,z) for x,y,z in hull.verts]
+    w.i(0)
+    transform(w,'TankCollisionHull',sc=(.001,.001,.001),collider_mesh=hull)
     w.i(1)
-    w.i(10,3)
-    for mat,idx in [('FabricCeramic',0),('DockTitanium',1),('ReinforcedBands',2)]:
+    w.i(10,4)
+    for mat,idx in [('FabricCeramic',0),('DockTitanium',1),('ReinforcedBands',2),('RoosterWorks',3)]:
         w.string(mat);w.string('KSP/Diffuse');w.i(2)
         w.string('_Color');w.i(0);w.f(1,1,1,1)
         w.string('_MainTex');w.i(4,idx);w.f(1,1);w.f(0,0)
-    w.i(12,3)
-    for tx in ['fabric','metal','straps']:w.string(tx);w.i(0)
+    w.i(12,4)
+    for tx in ['fabric','metal','straps','branding']:w.string(tx);w.i(0)
     w.close()
     return out
 
 # KSP part names intentionally kept for save compatibility with LF/OX beta IDs.
 parts=[
     dict(id='ID_FoldTank_125',diameter=1.25,scale=.5,size='1.25 m',dockrad=.31,docktype='size0',capacity=2250,mass=.38,cost=2800,entry=6000,profile='size1',node=1,tech='advFuelSystems',docklabel='Clamp-O-Tron Jr.'),
-    dict(id='ID_FoldTank_250',diameter=2.5,scale=1.,size='2.5 m',dockrad=.625,docktype='size1',capacity=18000,mass=2.2,cost=10000,entry=17500,profile='size2',node=2,tech='largeVolumeContainment',docklabel='Clamp-O-Tron'),
-    dict(id='ID_FoldTank_375',diameter=3.75,scale=1.5,size='3.75 m',dockrad=1.25,docktype='size2',capacity=60750,mass=7.0,cost=27500,entry=38000,profile='size3',node=3,tech='largeVolumeContainment',docklabel='Clamp-O-Tron Sr.'),
+    dict(id='ID_FoldTank_250',diameter=2.5,scale=1.,size='2.5 m',dockrad=.625,docktype='size1',capacity=18000,mass=2.2,cost=10000,entry=17500,profile='size2',node=2,tech='advFuelSystems',docklabel='Clamp-O-Tron'),
+    dict(id='ID_FoldTank_375',diameter=3.75,scale=1.5,size='3.75 m',dockrad=1.25,docktype='size2',capacity=60750,mass=7.0,cost=27500,entry=38000,profile='size3',node=3,tech='advFuelSystems',docklabel='Clamp-O-Tron Sr.'),
 ]
 for path in PARTS.glob('*.cfg'):path.unlink()
 for path in MODEL.glob('*.mu'):path.unlink()
@@ -326,9 +431,16 @@ for p in parts:
     cost = {p['cost']}
     category = FuelTank
     subcategory = 0
-    title = ID-{int(p['diameter']*100):03} Pancake Inflatable Fuel Depot
-    manufacturer = Inflata Aerospace Works
-    description = Launch as a compact pancake. After reaching orbit inflate into a cylindrical propellant depot, then fill it from tankers. The only attach/dock port is on the rigid bottom face. Configure propellant with B9 Part Switch in the VAB. Requires B9 Part Switch and ModuleManager.
+    // VAB Organizer reads this directly from PART.partConfig.  Keep this here
+    // so the tanks appear in Rocket Fuel, never Miscellaneous, even when a
+    // ModuleManager compatibility patch is absent or overridden.
+    VABORGANIZER
+    {{
+        organizerSubcategory = lfo
+    }}
+    title = RoosterWorks ID-{int(p['diameter']*100):03} Inflatable Depot
+    manufacturer = RoosterWorks
+    description = RoosterWorks inflatable orbital fuel depot. Launch folded flat and inflate into a reinforced cylindrical bladder. Single bottom docking connection. Fuel type selectable in the VAB. The included deployment-lock module is intended to prevent fuel storage until fully inflated.
     attachRules = 1,0,1,1,0
     bulkheadProfiles = {p['profile']}
     tags = inflatable pancake deploy cylinder orbital depot refuel docking storage liquidfuel oxidizer

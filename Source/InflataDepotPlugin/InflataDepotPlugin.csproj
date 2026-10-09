@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <AssemblyName>InflataDepotPlugin</AssemblyName>
+    <RootNamespace>InflataDepot</RootNamespace>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <LangVersion>7.3</LangVersion>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <KSPDir Condition="'$(KSPDir)' == ''">$(KSP_DIR)</KSPDir>
+    <KSPManagedDir>$(KSPDir)\KSP_x64_Data\Managed</KSPManagedDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Assembly-CSharp"><HintPath>$(KSPManagedDir)\Assembly-CSharp.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(KSPManagedDir)\UnityEngine.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(KSPManagedDir)\UnityEngine.CoreModule.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(KSPManagedDir)\UnityEngine.UI.dll</HintPath><Private>False</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ModuleInflataFuelLock.cs" />
+  </ItemGroup>
+  <Target Name="CheckGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(KSPManagedDir)\Assembly-CSharp.dll')" Text="Pass /p:KSPDir=path-to-your-KSP-installation; KSP's Assembly-CSharp.dll is required to build." />
+  </Target>
+  <Target Name="CopyPluginToGameData" AfterTargets="Build">
+    <MakeDir Directories="..\..\GameData\InflataDepot\Plugins" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\..\GameData\InflataDepot\Plugins" />
+  </Target>
+</Project>
