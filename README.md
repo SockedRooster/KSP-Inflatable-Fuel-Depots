@@ -20,11 +20,11 @@ Turn a compact launch payload into a full-size orbital refueling depot. **Inflat
 
 ## Tanks and capacities
 
-| Part | Launch diameter | Docking compatibility | LF + Oxidizer | LF only |
-| --- | ---: | --- | --- | ---: |
-| **ID-125** | 1.25 m | Clamp-O-Tron Jr. (size0) | 1,012.5 LF + 1,237.5 OX | 2,250 LF |
-| **ID-250** | 2.5 m | Clamp-O-Tron (size1) | 8,100 LF + 9,900 OX | 18,000 LF |
-| **ID-375** | 3.75 m | Clamp-O-Tron Sr. (size2) | 27,337.5 LF + 33,412.5 OX | 60,750 LF |
+| Part | Launch diameter | Dry mass | Cost (funds) | Bottom docking port | LF + Oxidizer capacity | LF-only capacity |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| **ID-125** | 1.25 m | 0.38 t | 2,800 | Clamp-O-Tron Jr. (size0) | 1,012.5 LF + 1,237.5 OX | 2,250 LF |
+| **ID-250** | 2.5 m | 2.2 t | 10,000 | Clamp-O-Tron (size1) | 8,100 LF + 9,900 OX | 18,000 LF |
+| **ID-375** | 3.75 m | 7.0 t | 27,500 | Clamp-O-Tron Sr. (size2) | 27,337.5 LF + 33,412.5 OX | 60,750 LF |
 
 Each row is **one part** in the VAB, not separate LF and LF/OX variants. All tanks begin empty.
 
@@ -41,13 +41,15 @@ In the stock editor, look under **Fuel Tanks**. In Career mode, the parts unlock
 
 ### Manual installation
 
-1. Download **[`InflataDepot-v1.0.0.zip`](https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/releases/download/v1.0.0/InflataDepot-v1.0.0.zip)** from the [v1.0.0 release](https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/releases/tag/v1.0.0).
-2. Quit KSP and back up existing saves and craft files if upgrading from a beta.
-3. Remove any existing `GameData/InflataDepot` folder. **Do not merge old beta files.**
-4. Extract the release ZIP into your **KSP installation directory**, so the plugin ends up at `GameData/InflataDepot/Plugins/InflataDepotPlugin.dll`.
-5. Make sure **B9 Part Switch** and **ModuleManager** are installed, then start KSP.
+1. Download the named [`InflataDepot-v1.0.0.zip` release asset](https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/releases/download/v1.0.0/InflataDepot-v1.0.0.zip).
+2. Close KSP. Back up saved craft/vessels if upgrading, and remove the previous `GameData/InflataDepot` folder rather than merging files.
+3. Extract the ZIP into the **KSP installation folder** (the folder *containing* `GameData`), not directly into `GameData`.
+4. Verify that the plugin is at `KSP/GameData/InflataDepot/Plugins/InflataDepotPlugin.dll` and the part configs are under `KSP/GameData/InflataDepot/Parts/`.
+5. Install **B9 Part Switch** and **ModuleManager** separately. VAB Organizer is optional.
 
-**CKAN:** When InflataDepot is indexed, install it through CKAN instead; CKAN will handle required dependencies. Until then, use the GitHub release ZIP above.
+**Important:** Do not use GitHub's automatic **Source code (zip)** as a player installer; download the named release asset.
+
+**CKAN:** The `CKAN/InflataDepot.netkan` file in this repository is proposed metadata, not proof of CKAN listing. Once indexed, CKAN can install the mod and required dependencies.
 
 ## How to use
 
@@ -69,6 +71,12 @@ In the stock editor, look under **Fuel Tanks**. In Career mode, the parts unlock
 ## Roadmap
 
 Future updates may add additional resource configurations, including Monopropellant, Xenon, and compatible cryogenic fuels. These are **not part of v1.0.0**.
+
+## Repository layout
+
+Only `GameData/InflataDepot/` is installed into KSP. `Source/`, `Build-Plugin.*`, `CKAN/` and `Media/` are for development, publishing or documentation; do **not** place them inside the game's `GameData`.
+
+Regenerating models with `Source/build.py` overwrites tested models and configs. Work in a development copy and retest in KSP before publishing changed assets.
 
 ## Support and source
 

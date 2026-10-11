@@ -1,0 +1,25 @@
+# Generated archives and build output
+/dist/
+**/bin/
+**/obj/
+*.pdb
+
+# Editor and OS temporary files
+.vs/
+.vscode/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Logs
+*.log
+
+# The compiled plugin in GameData/InflataDepot/Plugins is intentionally tracked.

@@ -208,4 +208,4 @@ if ARCHIVE.exists():
         names=z.namelist()
         assert sum(x.startswith('GameData/InflataDepot/Parts/') for x in names)==3
 print('PASS fuel types + PNGs; optional regenerated archive integrity check')
-print('NOTE: 0.9.9 COLLISION TEST: hull switches on at full deployment; in-game KSP physics testing REQUIRED.')
+print('NOTE: Static checks do not replace in-game collision, docking and deployment tests after asset changes.')
