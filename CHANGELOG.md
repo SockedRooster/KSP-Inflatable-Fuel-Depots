@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.2 - Station Grey (2026-10-13)
+
+- Add Original and Station Grey stock colour variants to all three depot sizes.
+- Match the station modules' blue-grey steel palette using a fabric material tint.
+- Preserve fabric weave, branding, gold bands, fuel selection and VAB inflation.
+- Keep Original as the default; no added dependencies or changes to capacity/mass.
+- Static validation passed; in-game colour/variant checks remain pending.
+
+## 1.0.1 - Editor inflation (2026-10-13)
+
+- Add guarded Inflate and Deflate controls in the VAB and SPH for all three sizes.
+- Allow repeated deployment/retraction and show the correct editor storage status.
+- Keep editor tanks empty and preserve flight fuel-lock/empty-only deflation checks.
+- Update the asset generator to retain repeatable animation controls.
+- Rebuild against local KSP assemblies; in-game verification remains pending.
+
 ## 1.0.0 — Initial stable release (2026-10-08)
 
 - First public release package based on the creator-tested v0.10.0 gameplay assets.

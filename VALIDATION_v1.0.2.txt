@@ -1,0 +1,7 @@
+PASS: All three original model, texture, part, fuel and plugin files identical to v1.0.1.
+PASS: Original and Station Grey variants target FabricCeramic in all three models.
+PASS: Texture references resolve; tint-only variants do not alter mesh, cost or mass.
+PASS: Original remains default; explicit white tint restores it on switching back.
+PASS: Existing Source/test_assets.py checks for three models, configs, fuel types and PNGs.
+NOTE: Stock ModulePartVariants config follows materialName/_Color syntax in local KSP stock parts.
+NOTE: No KSP runtime testing; visually confirm finish and save/reload/symmetry in-game.

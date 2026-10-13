@@ -471,7 +471,7 @@ for p in parts:
         endEventGUIName = Inflated
         actionGUIName = Inflate Fuel Depot
         animSpeed = 1
-        isOneShot = true
+        isOneShot = false
         eventAvailableEditor = false
         eventAvailableFlight = true
         eventAvailableEVA = false

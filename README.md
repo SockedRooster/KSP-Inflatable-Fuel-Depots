@@ -1,90 +1,69 @@
 # RoosterWorks InflataDepot
 
-**Deployable orbital fuel storage for Kerbal Space Program 1**  
-**Version:** 1.0.0 · **Author:** SockedRooster · **License:** MIT
+**Version 1.0.2 — Kerbal Space Program 1**  
+**Author:** SockedRooster  
+**License:** MIT © 2026 SockedRooster
 
-![RoosterWorks InflataDepot tanks in KSP](Media/in-game-three-tanks.png)
+InflataDepot adds three inflatable orbital propellant depot parts. Each starts as a compact, empty disc (“pancake”) and expands into a cylindrical tank for use with refueling stations and spacecraft. A single bottom connection functions as a stock-compatible docking port.
 
-Turn a compact launch payload into a full-size orbital refueling depot. **InflataDepot** adds three pancake-shaped fuel tanks that expand into reinforced cylinders after deployment. Each tank has a single, integrated bottom docking interface, selectable fuel configurations, and safeguards to prevent fuel storage before inflation or deflation while fuel remains inside.
+## Parts and capacities
 
-## Features
+| VAB part | Launch diameter | Docking compatibility | LF + Oxidizer (units) | LF only (units) |
+|---|---:|---|---|---:|
+| RoosterWorks ID-125 Inflatable Depot | 1.25 m | Clamp-O-Tron Jr. (size0) | 1,012.5 LF + 1,237.5 OX | 2,250 LF |
+| RoosterWorks ID-250 Inflatable Depot | 2.5 m | Clamp-O-Tron (size1) | 8,100 LF + 9,900 OX | 18,000 LF |
+| RoosterWorks ID-375 Inflatable Depot | 3.75 m | Clamp-O-Tron Sr. (size2) | 27,337.5 LF + 33,412.5 OX | 60,750 LF |
 
-- **Compact launch, large storage:** Stow as a flat disc, then inflate into a cylinder in about 20 seconds.
-- **Three sizes:** 1.25 m, 2.5 m, and 3.75 m launch diameters.
-- **Two fuel configurations in one part:** Select **LF + Oxidizer** or **Liquid Fuel Only** in the VAB with B9 Part Switch.
-- **Deployment-locked storage:** Tanks have zero usable capacity while stowed or inflating. Once fully deployed, capacity becomes available, but the tank remains empty until refueled.
-- **Safe deflation:** Deflation is blocked until Liquid Fuel and Oxidizer are both completely drained.
-- **Functional docking:** A single bottom Clamp-O-Tron-compatible docking interface, sized for each tank.
-- **Deployed collision:** The inflated cylinder has physical collision; the docking base has its own collider.
-- **RoosterWorks styling:** Reinforced white fabric, gold restraints, branded nameplates, and sealed end caps.
+Each size is **one VAB part** with a **Fuel Configuration** selector (B9 Part Switch): **LF + Oxidizer** or **Liquid Fuel Only**.
 
-## Tanks and capacities
+## Colour variants
 
-| Part | Launch diameter | Dry mass | Cost (funds) | Bottom docking port | LF + Oxidizer capacity | LF-only capacity |
-| --- | ---: | ---: | ---: | --- | ---: | ---: |
-| **ID-125** | 1.25 m | 0.38 t | 2,800 | Clamp-O-Tron Jr. (size0) | 1,012.5 LF + 1,237.5 OX | 2,250 LF |
-| **ID-250** | 2.5 m | 2.2 t | 10,000 | Clamp-O-Tron (size1) | 8,100 LF + 9,900 OX | 18,000 LF |
-| **ID-375** | 3.75 m | 7.0 t | 27,500 | Clamp-O-Tron Sr. (size2) | 27,337.5 LF + 33,412.5 OX | 60,750 LF |
+In the VAB or SPH, right-click a depot and use the stock variant selector to choose **Original** or **Station Grey**. The grey fabric matches the blue-grey steel palette of RoosterWorks Station Modules. The gold bands, docking base and branding retain their original finish. Colour is independent of the B9 fuel configuration and is saved with the craft. All three sizes support both finishes; Original remains the default. No station-mod installation is required.
 
-Each row is **one part** in the VAB, not separate LF and LF/OX variants. All tanks begin empty.
+## Gameplay features
 
-## Requirements
+- Right-click a depot in the VAB or SPH to **Inflate Fuel Depot** or **Deflate Fuel Depot (Empty Only)**. Editor deployment is instant and the selected shape is saved with the craft. Tanks still launch empty, including when pre-inflated.
+- Folds compactly for launch and inflates into a cylinder in flight (approximately 20 seconds).
+- Launches empty: **cannot hold or receive fuel while folded or inflating**; full empty storage capacity becomes available only when fully deployed.
+- **Deflation is disabled while either Liquid Fuel or Oxidizer remains aboard.** Drain the tank completely before retracting it.
+- Solid cylinder collision when deployed, with a separate permanent docking-base collider. Avoid inflating through an existing structure.
+- High-resolution RoosterWorks fabric and nameplate textures; sealed end caps.
+- All parts appear under **Fuel Tanks** in the stock VAB. With **VAB Organizer**, they appear in **Fuel Tanks → Rocket Fuel**.
+- In Career mode, unlocked by **Advanced Fuel Systems** (`advFuelSystems`, 160-science tier).
 
-- **Kerbal Space Program 1** — release targets **KSP 1.12.5**
-- **[B9 Part Switch](https://github.com/blowfishpro/B9PartSwitch)** — required for fuel selection
-- **[ModuleManager](https://github.com/sarbian/ModuleManager)** — required for configuration patches
-- **[VAB Organizer](https://github.com/KSPModStewards/VABOrganizer)** — optional; groups the tanks under **Fuel Tanks → Rocket Fuel**
+## Dependencies
 
-In the stock editor, look under **Fuel Tanks**. In Career mode, the parts unlock at **Advanced Fuel Systems** (`advFuelSystems`, 160-science tier).
+Required (install separately; CKAN installs these automatically):
+- **B9 Part Switch** (`B9PartSwitch`)
+- **ModuleManager** (`ModuleManager`)
 
-## Installation
+Optional:
+- **VAB Organizer** (`VABOrganizer`) for the Rocket Fuel subcategory.
 
-### Manual installation
+## Manual installation
 
-1. Download the named [`InflataDepot-v1.0.0.zip` release asset](https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/releases/download/v1.0.0/InflataDepot-v1.0.0.zip).
-2. Close KSP. Back up saved craft/vessels if upgrading, and remove the previous `GameData/InflataDepot` folder rather than merging files.
-3. Extract the ZIP into the **KSP installation folder** (the folder *containing* `GameData`), not directly into `GameData`.
-4. Verify that the plugin is at `KSP/GameData/InflataDepot/Plugins/InflataDepotPlugin.dll` and the part configs are under `KSP/GameData/InflataDepot/Parts/`.
-5. Install **B9 Part Switch** and **ModuleManager** separately. VAB Organizer is optional.
+1. Quit KSP and back up saves and craft using older beta versions.
+2. Remove the **old** `GameData/InflataDepot` folder. Do not merge test builds.
+3. Extract **`InflataDepot-v1.0.2.zip`** into the **Kerbal Space Program installation directory**. The correct result is `GameData/InflataDepot/Plugins/InflataDepotPlugin.dll`.
+4. Install the required dependencies if not already installed.
+5. In the VAB, select a depot under Fuel Tanks and choose the desired B9 fuel configuration. Optionally inflate it in the editor to check clearance or launch deployed. Launch it empty; if folded, inflate it in flight; transfer fuel once fully deployed.
 
-**Important:** Do not use GitHub's automatic **Source code (zip)** as a player installer; download the named release asset.
+**Note:** People installing from CKAN need only select this mod; CKAN will manage the listed dependencies and files.
 
-**CKAN:** The `CKAN/InflataDepot.netkan` file in this repository is proposed metadata, not proof of CKAN listing. Once indexed, CKAN can install the mod and required dependencies.
+## Compatibility and cautions
 
-## How to use
+- Intended for **KSP 1.12.5**. Other KSP or mod combinations, including Kerbalism, have not been independently certified.
+- The creator confirmed the v0.10.0 baseline in-game: fuel locking, empty-only deflation, animation, docking, and deployed-cylinder collision. **v1.0.1 added editor deployment controls; v1.0.2 adds cosmetic colour variants using the same plugin. These updates still need in-game verification.**
+- Deploy in clear space: activating the deployed collider against an overlapping spacecraft can cause physics forces.
+- Save files or craft containing older beta part identifiers (including separate `_LF` variants) may need manual migration; keep backups.
+- Actions assigned to the older stock animation Toggle may need reassignment to **Inflate Fuel Depot** / **Deflate Empty Fuel Depot**.
+- A bottom docking interface already attached to a stack part is not simultaneously available as a free docking interface.
 
-1. In the VAB, choose an **ID-125**, **ID-250**, or **ID-375** depot from **Fuel Tanks**.
-2. Select **Fuel Configuration** in the part menu: **LF + Oxidizer** or **Liquid Fuel Only**.
-3. Launch the depot folded and empty. Place it where it has room to expand.
-4. In flight, choose **Inflate Fuel Depot**. Wait until deployment finishes.
-5. Transfer fuel from tankers or another connected vessel. **Inflation does not generate fuel.**
-6. To deflate, **drain the tank completely first**. Deflation is blocked whenever fuel remains inside.
+## Support, licensing and source
 
-## Compatibility and important notes
+- Repository: https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots
+- Issues: https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/issues
+- License: [MIT](LICENSE), copyright © 2026 SockedRooster
+- Mod source: `Source/InflataDepotPlugin/` (C#), `Source/build.py` (asset generator), and `Source/test_assets.py`.
 
-- **Inflate in clear space.** The deployed cylinder has collision, and deploying through overlapping parts or nearby craft may cause strong physics forces.
-- The docking interface is located **only at the bottom**. When attached to another stack part, that interface cannot simultaneously act as a free docking port.
-- Existing action groups created with older betas may need to be reassigned to the guarded inflate/deflate commands.
-- Older beta craft using the former separate `_LF` part identifiers may require rebuilding or manual migration.
-- This release was tested in the author's KSP installation. Broad compatibility with other mod combinations, including Kerbalism, is not guaranteed.
-
-## Roadmap
-
-Future updates may add additional resource configurations, including Monopropellant, Xenon, and compatible cryogenic fuels. These are **not part of v1.0.0**.
-
-## Repository layout
-
-Only `GameData/InflataDepot/` is installed into KSP. `Source/`, `Build-Plugin.*`, `CKAN/` and `Media/` are for development, publishing or documentation; do **not** place them inside the game's `GameData`.
-
-Regenerating models with `Source/build.py` overwrites tested models and configs. Work in a development copy and retest in KSP before publishing changed assets.
-
-## Support and source
-
-- **Issues and bug reports:** [GitHub Issues](https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/issues)
-- **Releases:** [GitHub Releases](https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/releases)
-- **Source code:** [`Source/InflataDepotPlugin/`](Source/InflataDepotPlugin/), [`Source/build.py`](Source/build.py), and [`Source/test_assets.py`](Source/test_assets.py)
-- **Changelog:** [CHANGELOG.md](CHANGELOG.md)
-
-**Copyright © 2026 SockedRooster. Licensed under the [MIT License](LICENSE).**
-
-InflataDepot does not redistribute KSP/Unity game libraries or its third-party dependencies.
+This package does not bundle third-party dependency binaries or KSP/Unity game libraries.

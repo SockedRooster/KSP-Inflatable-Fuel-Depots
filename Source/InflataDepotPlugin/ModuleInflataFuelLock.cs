@@ -4,6 +4,7 @@ using UnityEngine;
 // MIT License - (c) 2026 SockedRooster.
 // KSP 1.12.x: the deployment guard owns the flight UI so that a loaded depot
 // cannot be collapsed through the right-click menu or an action group.
+// The same controls allow empty deployment in the VAB and SPH.
 
 namespace InflataDepot
 {
@@ -35,10 +36,10 @@ namespace InflataDepot
         private bool wasPreviouslyUnlocked;
         private bool warnedAboutForcedReturn;
 
-        [KSPEvent(guiActive = true, guiName = "Inflate Fuel Depot", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Inflate Fuel Depot", active = true)]
         public void InflateDepot()
         {
-            if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight && !HighLogic.LoadedSceneIsEditor) return;
             LocateAnimation();
             if (animator == null || animator.IsMoving()) return;
             if (animator.animTime > 0.02f) return;
@@ -46,10 +47,10 @@ namespace InflataDepot
             UpdateControls();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deflate Fuel Depot (Empty Only)", active = false)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deflate Fuel Depot (Empty Only)", active = false)]
         public void DeflateDepot()
         {
-            if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight && !HighLogic.LoadedSceneIsEditor) return;
             LocateAnimation();
             // Do not trust menu visibility: action groups or external calls can
             // invoke this event, so always check the ACTUAL stored amounts.
@@ -67,7 +68,7 @@ namespace InflataDepot
             wasPreviouslyUnlocked = false;
             retractionPending = true;
             animator.Toggle();
-            SyncFlightCapacity();
+            if (HighLogic.LoadedSceneIsFlight) SyncFlightCapacity();
             UpdateControls();
         }
 
@@ -88,7 +89,7 @@ namespace InflataDepot
             base.OnStart(state);
             LocateAnimation();
             wasPreviouslyUnlocked = storageUnlocked;
-            if (HighLogic.LoadedSceneIsFlight)
+            if (HighLogic.LoadedSceneIsFlight || HighLogic.LoadedSceneIsEditor)
             {
                 // Native Toggle / ToggleAction do NOT check the fuel amounts.
                 // We replace both with the guarded controls above.
@@ -104,7 +105,14 @@ namespace InflataDepot
             if (HighLogic.LoadedSceneIsEditor)
             {
                 EmptyInEditor();
-                storageStatus = "STOWED - NO FUEL";
+                SuppressNativeToggle();
+                storageUnlocked = false;
+                wasPreviouslyUnlocked = false;
+                retractionPending = false;
+                storageStatus = animator != null && animator.animTime >= DeployedThreshold
+                    ? "INFLATED - EMPTY AT LAUNCH"
+                    : "STOWED - NO FUEL";
+                UpdateControls();
             }
             else if (HighLogic.LoadedSceneIsFlight)
             {
@@ -154,6 +162,7 @@ namespace InflataDepot
             {
                 stockEvent.active = false;
                 stockEvent.guiActive = false;
+                stockEvent.guiActiveEditor = false;
                 stockEvent.guiActiveUnfocused = false;
             }
             BaseAction stockAction = animator.Actions["ToggleAction"];
@@ -171,7 +180,7 @@ namespace InflataDepot
 
         private void UpdateControls()
         {
-            if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight && !HighLogic.LoadedSceneIsEditor) return;
             LocateAnimation();
             bool idle = animator != null && !animator.IsMoving();
             bool stowed = idle && animator.animTime <= 0.02f;
