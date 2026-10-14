@@ -57,7 +57,7 @@ Optional:
 ## Compatibility and cautions
 
 - Intended for **KSP 1.12.5**. Other KSP or mod combinations, including Kerbalism, have not been independently certified.
-- The creator confirmed the v0.10.0 baseline in-game: fuel locking, empty-only deflation, animation, docking, and deployed-cylinder collision. **v1.0.1 added editor deployment controls; v1.0.2 added colour variants; v1.0.3 fixes the editor Deflate control with the stock animation toggle and a rebuilt plugin. These updates still need in-game verification.**
+- The maintainer has tested v1.0.5 in KSP. This release includes editor deployment controls, Original/Station Grey colour variants, editor Deflate handling, always-on docking crossfeed, and disabled docking-port staging. Earlier versions' offline-validation notices are retained in historical changelog entries.
 - Deploy in clear space: activating the deployed collider against an overlapping spacecraft can cause physics forces.
 - Save files or craft containing older beta part identifiers (including separate `_LF` variants) may need manual migration; keep backups.
 - Actions assigned to the older stock animation Toggle may need reassignment to **Inflate Fuel Depot** / **Deflate Empty Fuel Depot**.
