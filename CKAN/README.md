@@ -1,22 +1,19 @@
-# CKAN Submission — InflataDepot
+# CKAN Submission — RoosterWorks InflataDepot
 
-Files here are **submission preparation materials**, not a standalone CKAN registration.
-The index does not accept a local directory uploaded to GitHub as an automatic listing.
+This folder contains CKAN submission metadata and preparation notes. Merely storing a NetKAN file in this repository does not register the mod in CKAN.
 
-1. Make sure the code and LICENSE are committed in the public project repository.
-2. At https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/releases/new create a
-   **regular release** using tag **`v1.0.0`**, titled **RoosterWorks InflataDepot v1.0.0**.
-3. Attach the **player asset `InflataDepot-v1.0.0.zip`** (NOT the developer/source ZIP)
-   and paste the `RELEASE_DESCRIPTION.md` into the release notes.
-4. Check that the publicly reachable GitHub asset filename matches the `$kref`
-   asset_match pattern in `InflataDepot.netkan`.
-5. Verify `ksp_version: 1.12.5` matches your KSP test installation. If not,
-   update metadata to the tested version *before* submitting.
-6. Submit **`InflataDepot.netkan`** to the public CKAN metadata index:
-   https://github.com/KSP-CKAN/NetKAN (usually as a pull request; follow its CONTRIBUTING instructions).
-7. Let CKAN maintainers' bot/CI generate and validate the versioned `.ckan` and
-   review the installation. CKAN appearance is **not instantaneous or guaranteed**.
+## Current release
 
-Dependencies are `B9PartSwitch` and `ModuleManager`; optional `VABOrganizer` provides
-Fuel Tanks → Rocket Fuel categorization. This metadata installs the `InflataDepot`
-folder into `GameData` and does not bundle third-party dependency files.
+- Latest source/documentation version: **v1.0.5**, tested in KSP by the maintainer.
+- GitHub releases: https://github.com/SockedRooster/KSP-Inflatable-Fuel-Depots/releases
+- Attach the player installation archive named **`InflataDepot-v1.0.5.zip`** to a regular (non-prerelease) GitHub release tagged **`v1.0.5`**.
+- Use [RELEASE_NOTES_v1.0.5.md](../RELEASE_NOTES_v1.0.5.md) for the release description.
+- Do not use GitHub's automatic "Source code" archives as installation assets.
+
+## CKAN submission
+
+The [InflataDepot.netkan](InflataDepot.netkan) file targets GitHub release assets matching `InflataDepot-v<version>.zip`, installs the `InflataDepot` folder into `GameData`, and declares required `B9PartSwitch` and `ModuleManager` dependencies plus optional `VABOrganizer`.
+
+After publishing the release, confirm that the downloadable asset matches the filename pattern and contains `GameData/InflataDepot` with the plugin, models, and part configs. Submit the metadata to https://github.com/KSP-CKAN/NetKAN following their contribution instructions. CKAN indexing depends on maintainer review and validation; it is not automatic merely because the file is committed here.
+
+KSP compatibility is currently declared as **1.12.5**. Broader compatibility should not be claimed without testing.
