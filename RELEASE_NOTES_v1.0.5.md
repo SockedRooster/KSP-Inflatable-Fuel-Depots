@@ -12,5 +12,5 @@ variants remain included. Tanks still launch empty and require deployment to fil
 Validation: compiled against installed KSP assemblies; all existing asset tests
 passed; staging defaults verified in all three configs; models/textures/colour
 patch unchanged; archives checked. No game libraries bundled.
-In-game verification pending: check staging menus and stack on fresh and saved
-craft, verify manual undocking/decoupling, and recheck crossfeed and deployment.
+In-game testing completed by the maintainer for v1.0.5. The offline checks above
+were also completed; no KSP/Unity game libraries are bundled.
