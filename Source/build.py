@@ -459,20 +459,23 @@ for p in parts:
     MODULE
     {{
         name = ModuleDockingNode
+        crossfeed = true
         referenceAttachNode = bottom
         nodeType = {p['docktype']}
         stagingEnabled = False
+        stagingToggleEnabledEditor = False
+        stagingToggleEnabledFlight = False
     }}
     MODULE
     {{
         name = ModuleAnimateGeneric
         animationName = inflate
         startEventGUIName = Inflate Fuel Depot
-        endEventGUIName = Inflated
+        endEventGUIName = Deflate Fuel Depot
         actionGUIName = Inflate Fuel Depot
         animSpeed = 1
         isOneShot = false
-        eventAvailableEditor = false
+        eventAvailableEditor = true
         eventAvailableFlight = true
         eventAvailableEVA = false
         instantAnimInEditor = true

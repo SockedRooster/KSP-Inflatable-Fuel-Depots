@@ -1,6 +1,6 @@
 # RoosterWorks InflataDepot
 
-**Version 1.0.2 — Kerbal Space Program 1**  
+**Version 1.0.5 — Kerbal Space Program 1**  
 **Author:** SockedRooster  
 **License:** MIT © 2026 SockedRooster
 
@@ -22,7 +22,11 @@ In the VAB or SPH, right-click a depot and use the stock variant selector to cho
 
 ## Gameplay features
 
-- Right-click a depot in the VAB or SPH to **Inflate Fuel Depot** or **Deflate Fuel Depot (Empty Only)**. Editor deployment is instant and the selected shape is saved with the craft. Tanks still launch empty, including when pre-inflated.
+- Staging is permanently disabled for the depot docking port, and its staging toggle is hidden in the editor and flight. Manual docking, undocking and decoupling controls remain available.
+
+- Docking crossfeed is always enabled. Crossfeed menu buttons and action-group options are hidden; older saved OFF states are restored automatically. The folded-tank storage lock still applies.
+
+- Right-click a depot in the VAB or SPH to **Inflate Fuel Depot** or **Deflate Fuel Depot**. Editor deployment is instant and the selected shape is saved with the craft. Tanks still launch empty, including when pre-inflated.
 - Folds compactly for launch and inflates into a cylinder in flight (approximately 20 seconds).
 - Launches empty: **cannot hold or receive fuel while folded or inflating**; full empty storage capacity becomes available only when fully deployed.
 - **Deflation is disabled while either Liquid Fuel or Oxidizer remains aboard.** Drain the tank completely before retracting it.
@@ -44,7 +48,7 @@ Optional:
 
 1. Quit KSP and back up saves and craft using older beta versions.
 2. Remove the **old** `GameData/InflataDepot` folder. Do not merge test builds.
-3. Extract **`InflataDepot-v1.0.2.zip`** into the **Kerbal Space Program installation directory**. The correct result is `GameData/InflataDepot/Plugins/InflataDepotPlugin.dll`.
+3. Extract **`InflataDepot-v1.0.5.zip`** into the **Kerbal Space Program installation directory**. The correct result is `GameData/InflataDepot/Plugins/InflataDepotPlugin.dll`.
 4. Install the required dependencies if not already installed.
 5. In the VAB, select a depot under Fuel Tanks and choose the desired B9 fuel configuration. Optionally inflate it in the editor to check clearance or launch deployed. Launch it empty; if folded, inflate it in flight; transfer fuel once fully deployed.
 
@@ -53,7 +57,7 @@ Optional:
 ## Compatibility and cautions
 
 - Intended for **KSP 1.12.5**. Other KSP or mod combinations, including Kerbalism, have not been independently certified.
-- The creator confirmed the v0.10.0 baseline in-game: fuel locking, empty-only deflation, animation, docking, and deployed-cylinder collision. **v1.0.1 added editor deployment controls; v1.0.2 adds cosmetic colour variants using the same plugin. These updates still need in-game verification.**
+- The creator confirmed the v0.10.0 baseline in-game: fuel locking, empty-only deflation, animation, docking, and deployed-cylinder collision. **v1.0.1 added editor deployment controls; v1.0.2 added colour variants; v1.0.3 fixes the editor Deflate control with the stock animation toggle and a rebuilt plugin. These updates still need in-game verification.**
 - Deploy in clear space: activating the deployed collider against an overlapping spacecraft can cause physics forces.
 - Save files or craft containing older beta part identifiers (including separate `_LF` variants) may need manual migration; keep backups.
 - Actions assigned to the older stock animation Toggle may need reassignment to **Inflate Fuel Depot** / **Deflate Empty Fuel Depot**.

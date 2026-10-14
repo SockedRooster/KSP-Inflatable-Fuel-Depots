@@ -4,7 +4,7 @@ from zipfile import ZipFile
 from pathlib import Path
 import sys
 
-p = Path(sys.argv[1]) if len(sys.argv)>1 else Path('InflataDepot-v1.0.2.zip')
+p = Path(sys.argv[1]) if len(sys.argv)>1 else Path('InflataDepot-v1.0.0.zip')
 with ZipFile(p) as z:
     assert z.testzip() is None, 'Corrupt ZIP member'
     names=set(z.namelist())
@@ -20,7 +20,7 @@ with ZipFile(p) as z:
         expected.add(f'GameData/InflataDepot/Parts/ID_FoldTank_{size}.cfg')
     missing=expected-names
     assert not missing, f'Missing files: {sorted(missing)}'
-    assert all(n.startswith('GameData/InflataDepot/') or n in {'LICENSE','README.md','CHANGELOG.md','RELEASE_NOTES_v1.0.2.md','VALIDATION_v1.0.2.txt'} for n in names)
+    assert all(n.startswith('GameData/InflataDepot/') or n in {'LICENSE','README.md','CHANGELOG.md'} for n in names)
     for size in ('125','250','375'):
         cfg=z.read(f'GameData/InflataDepot/Parts/ID_FoldTank_{size}.cfg').decode('utf-8')
         for phrase in ('category = FuelTank','TechRequired = advFuelSystems','organizerSubcategory = lfo','ModuleB9PartSwitch','ModuleDockingNode'):
