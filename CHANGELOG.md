@@ -5,7 +5,7 @@
 - Disable docking-port staging and its editor/flight toggle on all three sizes.
 - Restore previously saved staging-enabled ports to disabled through the stock API.
 - Retain manual docking controls, always-on crossfeed, VAB deflation and colour variants.
-- Plugin compilation and offline checks passed; in-game verification pending.
+- Plugin compilation and offline checks passed; v1.0.5 subsequently tested in-game by the maintainer.
 
 ## 1.0.4 - Always-on crossfeed (2026-10-14)
 
